@@ -1,25 +1,98 @@
 package edu.joe;
 
-
 import com.mysql.jdbc.Driver;
 import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
-
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Joe Wang, tbpwang@gmail.com
  * 2016/5/18.
  */
 public class IP {
-    private static final String URL = "jdbc:mysql://localhost:3306";
+    private static final String URL = "jdbc:mysql://10.4.32.21:3306";//jdbc:mysql://localhost:3306";
     private static final String USER = "root";
     private static final String PASSWORD = "system";
     private static final String TXT_FILE_PATH = "resource/IP.txt";
+    protected static boolean haveInputData;
+
+    public static boolean isHaveInputData() {
+        return haveInputData;
+    }
+
+    public static void setHaveInputData(boolean haveInputData) {
+        IP.haveInputData = haveInputData;
+    }
 
     public static void main(String[] args) {
-        //DataFromTxt.insert();
+//        if (!IP.isHaveInputData()) {
+//            DataFromTxt.insert();
+//        }
+
+        System.out.println("Input IPAdress(*.*.*.*): ");
+        Scanner scanner = new Scanner(System.in);
+        String in = scanner.nextLine();
+        if(!isIPAddress(in)) {
+            System.out.println("IP Address is Error! Please Check....");
+            System.exit(0);
+        }
+
         DataFromDatabase.query();
+
+        //(id, fromIP, toIP, position, description)
+        String ipSQL = "SELECT position, description  FROM IP.IP WHERE ? >= fromIP AND ? <= toIP";
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            new Driver();
+            connection = DriverManager.getConnection(URL, USER,PASSWORD);
+            preparedStatement = connection.prepareStatement(ipSQL);
+            preparedStatement.setString(1,in);
+            preparedStatement.setString(2,in);
+            resultSet = preparedStatement.executeQuery();
+            System.out.println("IP is：" + resultSet.getString("position") + " " + resultSet.getString("description"));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (preparedStatement != null) {
+                try {
+                    preparedStatement.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                if (connection != null) {
+                    try {
+                        connection.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+    }
+
+    private static boolean isIPAddress(String ipAddress) {
+        //255.255.255.255-0.0.0.1
+        String pattIP = "^(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|[1-9])\\."
+                +"(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
+                +"(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
+                +"(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)$";
+        Pattern pattern = Pattern.compile(pattIP);
+        Matcher matcher = pattern.matcher(ipAddress);
+        return matcher.matches();
     }
 
     private ArrayList<String> readFileTxt(String filePath) {
@@ -94,7 +167,7 @@ public class IP {
             try {
                 new Driver();
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                String sql = "INSERT INTO ip.ip VALUES(NULL, ?, ?, ?, ?)";
+                String sql = "INSERT INTO ip.ip VALUES(NULL, ?, ?, ?, ?);";
                 //(?, ?, ?, ?, ?);";
                 // (id, fromIP, toIP, location, owner)
                 String[][] columnsValues = ip.getColumnsValues();
@@ -110,7 +183,7 @@ public class IP {
                     preparedStatement.addBatch();
                 }
                 preparedStatement.executeBatch();
-
+                IP.setHaveInputData(true);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -130,7 +203,6 @@ public class IP {
                     }
                 }
             }
-            ip = null;
         }
     }
 
