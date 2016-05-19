@@ -18,48 +18,7 @@ public class IP {
     private static final String TXT_FILE_PATH = "resource/IP.txt";
 
     public static void main(String[] args) {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        IP ip = new IP();
-        try {
-            new Driver();
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            String sql = "INSERT INTO ip.ip VALUES(NULL, ?, ?, ?, ?)";
-            //(?, ?, ?, ?, ?);";
-            // (id, fromIP, toIP, location, owner)
-            String[][] columnsValues = ip.getColumnsValues();
-            System.out.println("Total lines are: " + columnsValues.length);
-
-            preparedStatement = connection.prepareStatement(sql);
-            for (String[] rows : columnsValues) {
-                for (int colCount = 0; colCount < 4; colCount++) {
-                    preparedStatement.setString(colCount + 1, rows[colCount]);
-                    //System.out.print(rows[colCount]+ " ");
-                }
-                //System.out.println("");
-                preparedStatement.addBatch();
-            }
-            preparedStatement.executeBatch();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        finally {
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        DataFromTxt.insert();
     }
 
     private ArrayList<String> readFileTxt(String filePath) {
@@ -124,5 +83,52 @@ public class IP {
 
         }
         return columnsValues;
+    }
+
+    private static class DataFromTxt {
+        public static void insert() {
+            Connection connection = null;
+            PreparedStatement preparedStatement = null;
+            IP ip = new IP();
+            try {
+                new Driver();
+                connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                String sql = "INSERT INTO ip.ip VALUES(NULL, ?, ?, ?, ?)";
+                //(?, ?, ?, ?, ?);";
+                // (id, fromIP, toIP, location, owner)
+                String[][] columnsValues = ip.getColumnsValues();
+                System.out.println("Total lines are: " + columnsValues.length);
+
+                preparedStatement = connection.prepareStatement(sql);
+                for (String[] rows : columnsValues) {
+                    for (int colCount = 0; colCount < 4; colCount++) {
+                        preparedStatement.setString(colCount + 1, rows[colCount]);
+                        //System.out.print(rows[colCount]+ " ");
+                    }
+                    //System.out.println("");
+                    preparedStatement.addBatch();
+                }
+                preparedStatement.executeBatch();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            finally {
+                if (preparedStatement != null) {
+                    try {
+                        preparedStatement.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (connection != null) {
+                    try {
+                        connection.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 }
