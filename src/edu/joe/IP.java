@@ -18,7 +18,8 @@ public class IP {
     private static final String TXT_FILE_PATH = "resource/IP.txt";
 
     public static void main(String[] args) {
-        DataFromTxt.insert();
+        //DataFromTxt.insert();
+        DataFromDatabase.query();
     }
 
     private ArrayList<String> readFileTxt(String filePath) {
@@ -129,6 +130,13 @@ public class IP {
                     }
                 }
             }
+            ip = null;
+        }
+    }
+
+    private static class DataFromDatabase {
+        public static void query() {
+
         }
     }
 }
