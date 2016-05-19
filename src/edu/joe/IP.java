@@ -73,7 +73,6 @@ public class IP {
             reader = new BufferedReader(file);
             while ((line = reader.readLine()) != null && reader.ready()) {
                 if (!line.equals("")) {
-//                    columns = line.split("[\\s+]");
                     list.add(line);
                 }
             }
