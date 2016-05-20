@@ -33,7 +33,7 @@ public class IP {
 //            DataFromTxt.insert();
 //        }
 
-        System.out.println("Input IPAdress(*.*.*.*): ");
+        System.out.println("Input IPAddress(*.*.*.*): ");
         Scanner scanner = new Scanner(System.in);
         String in = scanner.nextLine();
         if (!isIPAddress(in)) {
@@ -46,7 +46,8 @@ public class IP {
         long ipToNumber = ipAddressToNumber(in);
 
         //(id, fromIP, toIP, position, description)
-        String ipSQL = "SELECT position, description FROM ip.ip p,(SELECT id, inet_aton(fromIP) AS start, inet_aton(toIP) AS end FROM ip.ip)t "
+        String ipSQL = "SELECT position, description FROM ipbase.ipaddress p,"
+                + "(SELECT id, inet_aton(fromIP) AS start, inet_aton(toIP) AS end FROM ipbase.ipaddress)t "
                 + "WHERE t.id = p.id AND t.start <= ? AND t.end >= ?";
         //"SELECT position, description FROM ip.ip WHERE ? BETWEEN (SELECT inet_aton(fromIP)FROM ip.ip) AND (SELECT inet_aton(toIP)FROM ip.ip )";
         //"SELECT position, description  FROM IP.IP WHERE ? >= fromIP AND ? <= toIP";
@@ -62,8 +63,12 @@ public class IP {
             preparedStatement.setLong(1, ipToNumber);
             preparedStatement.setLong(2, ipToNumber);
             resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                System.out.println("IP is：" + resultSet.getString("position") + " " + resultSet.getString("description"));
+            if (resultSet != null) {
+                while (resultSet.next()) {
+                    System.out.println("IP is：" + resultSet.getString("position") + " " + resultSet.getString("description"));
+                }
+            }else {
+                System.out.println("No query results!");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -94,10 +99,10 @@ public class IP {
 
     private static long ipAddressToNumber(String in) {
         long ip = 0L;
-        String[] strs = in.split("\\.");
-        for (int i = 0; i < strs.length; i++) {
-            System.out.println(strs[i]);
-            ip += (long) (Long.parseLong(strs[i]) * Math.pow(256, (3 - i)));
+        String[] ipSegments = in.split("\\.");
+        for (int i = 0; i < ipSegments.length; i++) {
+            System.out.println(ipSegments[i]);
+            ip += (long) (Long.parseLong(ipSegments[i]) * Math.pow(256, (3 - i)));
         }
         return ip;
     }
@@ -172,7 +177,6 @@ public class IP {
                 }
                 columnsValues[rowCount][3] += rearStr;
             }
-
         }
         return columnsValues;
     }
@@ -185,7 +189,7 @@ public class IP {
             try {
                 new Driver();
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                String sql = "INSERT INTO ip.ip VALUES(NULL, ?, ?, ?, ?);";
+                String sql = "INSERT INTO ipbase.ipaddress VALUES(NULL, ?, ?, ?, ?);";
                 //(?, ?, ?, ?, ?);";
                 // (id, fromIP, toIP, location, owner)
                 String[][] columnsValues = ip.getColumnsValues();
