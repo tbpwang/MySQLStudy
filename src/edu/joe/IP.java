@@ -35,66 +35,13 @@ public class IP {
 
         System.out.println("Input IPAddress(*.*.*.*): ");
         Scanner scanner = new Scanner(System.in);
-        String in = scanner.nextLine();
-        if (!isIPAddress(in)) {
+        String ip = scanner.nextLine();
+        if (!isIPAddress(ip)) {
             System.out.println("IP Address is Error! Please Check....");
             System.exit(0);
         }
 
-        DataFromDatabase.query();
-
-        long ipToNumber = ipAddressToNumber(in);
-
-        //(id, fromIP, toIP, position, description)
-        String ipSQL = "SELECT position, description FROM ipbase.ipaddress p,"
-                + "(SELECT id, inet_aton(fromIP) AS start, inet_aton(toIP) AS end FROM ipbase.ipaddress)t "
-                + "WHERE t.id = p.id AND t.start <= ? AND t.end >= ?";
-        //"SELECT position, description FROM ip.ip WHERE ? BETWEEN (SELECT inet_aton(fromIP)FROM ip.ip) AND (SELECT inet_aton(toIP)FROM ip.ip )";
-        //"SELECT position, description  FROM IP.IP WHERE ? >= fromIP AND ? <= toIP";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            new Driver();
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            preparedStatement = connection.prepareStatement(ipSQL);
-            preparedStatement.setLong(1, ipToNumber);
-            preparedStatement.setLong(2, ipToNumber);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet != null) {
-                while (resultSet.next()) {
-                    System.out.println("IP is：" + resultSet.getString("position") + " " + resultSet.getString("description"));
-                }
-            }else {
-                System.out.println("No query results!");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (resultSet != null) {
-                try {
-                    resultSet.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (preparedStatement != null) {
-                try {
-                    preparedStatement.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }
-
+        DataFromDatabase.query(ip);
     }
 
     private static long ipAddressToNumber(String in) {
@@ -228,8 +175,57 @@ public class IP {
     }
 
     private static class DataFromDatabase {
-        public static void query() {
+        public static void query(String ip) {
+            long ipToNumber = ipAddressToNumber(ip);
 
+            //(id, fromIP, toIP, position, description)
+            String ipSQL = "SELECT position, description FROM ipbase.ipaddress p,"
+                    + "(SELECT id, inet_aton(fromIP) AS start, inet_aton(toIP) AS end FROM ipbase.ipaddress)t "
+                    + "WHERE t.id = p.id AND t.start <= ? AND t.end >= ?";
+            //"SELECT position, description FROM ip.ip WHERE ? BETWEEN (SELECT inet_aton(fromIP)FROM ip.ip) AND (SELECT inet_aton(toIP)FROM ip.ip )";
+            //"SELECT position, description  FROM IP.IP WHERE ? >= fromIP AND ? <= toIP";
+
+            Connection connection = null;
+            PreparedStatement preparedStatement = null;
+            ResultSet resultSet = null;
+
+            try {
+                new Driver();
+                connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                preparedStatement = connection.prepareStatement(ipSQL);
+                preparedStatement.setLong(1, ipToNumber);
+                preparedStatement.setLong(2, ipToNumber);
+                resultSet = preparedStatement.executeQuery();
+                if (resultSet != null) {
+                    while (resultSet.next()) {
+                        System.out.println("IP is：" + resultSet.getString("position") + " " + resultSet.getString("description"));
+                    }
+                } else {
+                    System.out.println("No query results!");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                if (resultSet != null) {
+                    try {
+                        resultSet.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (preparedStatement != null) {
+                    try {
+                        preparedStatement.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        connection.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 }
