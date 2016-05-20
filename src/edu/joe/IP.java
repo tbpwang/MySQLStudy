@@ -1,6 +1,7 @@
 package edu.joe;
 
 import com.mysql.jdbc.Driver;
+
 import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
@@ -35,30 +36,38 @@ public class IP {
         System.out.println("Input IPAdress(*.*.*.*): ");
         Scanner scanner = new Scanner(System.in);
         String in = scanner.nextLine();
-        if(!isIPAddress(in)) {
+        if (!isIPAddress(in)) {
             System.out.println("IP Address is Error! Please Check....");
             System.exit(0);
         }
 
         DataFromDatabase.query();
 
+        long ipToNumber = ipAddressToNumber(in);
+
         //(id, fromIP, toIP, position, description)
-        String ipSQL = "SELECT position, description  FROM IP.IP WHERE ? >= fromIP AND ? <= toIP";
+        String ipSQL = "SELECT position, description FROM ip.ip p,(SELECT id, inet_aton(fromIP) AS start, inet_aton(toIP) AS end FROM ip.ip)t "
+                + "WHERE t.id = p.id AND t.start <= ? AND t.end >= ?";
+        //"SELECT position, description FROM ip.ip WHERE ? BETWEEN (SELECT inet_aton(fromIP)FROM ip.ip) AND (SELECT inet_aton(toIP)FROM ip.ip )";
+        //"SELECT position, description  FROM IP.IP WHERE ? >= fromIP AND ? <= toIP";
+
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
 
         try {
             new Driver();
-            connection = DriverManager.getConnection(URL, USER,PASSWORD);
+            connection = DriverManager.getConnection(URL, USER, PASSWORD);
             preparedStatement = connection.prepareStatement(ipSQL);
-            preparedStatement.setString(1,in);
-            preparedStatement.setString(2,in);
+            preparedStatement.setLong(1, ipToNumber);
+            preparedStatement.setLong(2, ipToNumber);
             resultSet = preparedStatement.executeQuery();
-            System.out.println("IP is：" + resultSet.getString("position") + " " + resultSet.getString("description"));
+            while (resultSet.next()) {
+                System.out.println("IP is：" + resultSet.getString("position") + " " + resultSet.getString("description"));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             if (resultSet != null) {
                 try {
                     resultSet.close();
@@ -72,24 +81,33 @@ public class IP {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-                if (connection != null) {
-                    try {
-                        connection.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
+
             }
         }
 
     }
 
+    private static long ipAddressToNumber(String in) {
+        long ip = 0L;
+        String[] strs = in.split("\\.");
+        for (int i = 0; i < strs.length; i++) {
+            System.out.println(strs[i]);
+            ip += (long) (Long.parseLong(strs[i]) * Math.pow(256, (3 - i)));
+        }
+        return ip;
+    }
+
     private static boolean isIPAddress(String ipAddress) {
         //255.255.255.255-0.0.0.1
         String pattIP = "^(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|[1-9])\\."
-                +"(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
-                +"(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
-                +"(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)$";
+                + "(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
+                + "(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
+                + "(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)$";
         Pattern pattern = Pattern.compile(pattIP);
         Matcher matcher = pattern.matcher(ipAddress);
         return matcher.matches();
@@ -138,7 +156,7 @@ public class IP {
         ArrayList<String> data = readFileTxt(TXT_FILE_PATH);
         String row;
         String[] columns;
-        String[][]columnsValues = new String[data.size()][4];
+        String[][] columnsValues = new String[data.size()][4];
         //(?, ?, ?, ?, ?);";
         // (id, fromIP, toIP, location, owner)
         for (int rowCount = 0; rowCount < data.size(); rowCount++) {
@@ -148,7 +166,7 @@ public class IP {
                 System.arraycopy(columns, 0, columnsValues[rowCount], 0, columns.length);
             } else {
                 System.arraycopy(columns, 0, columnsValues[rowCount], 0, 4);
-                String rearStr= " ";
+                String rearStr = " ";
                 for (int i = 4; i < columns.length; i++) {
                     rearStr += columns[i] + " ";
                 }
@@ -186,8 +204,7 @@ public class IP {
                 IP.setHaveInputData(true);
             } catch (SQLException e) {
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 if (preparedStatement != null) {
                     try {
                         preparedStatement.close();
