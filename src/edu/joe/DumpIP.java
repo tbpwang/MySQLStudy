@@ -8,19 +8,12 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @author tbpwang@gmail.com
  *         2016/5/23.
  */
 public class DumpIP {
-    private static final String URL = "jdbc://mysql://10.4.32.21//db_ip?user=root&password=system";
-    private static final String FILE = "data/ip.txt";
-    private static final String SQL = "INSERT INTO db_IP.IP(start,end,location,remark)VALUES(?,?,?,?);";
-    private static List<IP> ips;
 
     public static void main(String[] args) {
         parse();
@@ -28,7 +21,7 @@ public class DumpIP {
     }
 
     //read txt(start ip, end ip, location, remark)
-    static void parse() {
+    public static void parse() {
         BufferedReader reader = null;
         FileReader file = null;
         String line;
@@ -36,9 +29,9 @@ public class DumpIP {
         long end = 0;
         String location, remark;
         String[] startIPSegments, endIPSegments;
-        ips = new ArrayList<>();
+        Constant.setIps(new ArrayList<>());
         try {
-            file = new FileReader(FILE);
+            file = new FileReader(Constant.getDumpFile());
 
             reader = new BufferedReader(file);
             while ((line = reader.readLine()) != null) {
@@ -47,16 +40,15 @@ public class DumpIP {
                 endIPSegments = line.split("\\s+")[1].split("\\.");
                 location = line.split("\\s+")[2];
                 remark = line.replaceAll(line.split("\\s+")[0] + "\\s+" + line.split("\\s+")[1] + "\\s+" + line.split("\\s+")[2], "").trim();
+
                 for (int i = 0; i < startIPSegments.length; i++) {
                     start += (long) (Long.parseLong(startIPSegments[i]) * Math.pow(256, (3 - i)));
                 }
                 for (int i = 0; i < endIPSegments.length; i++) {
                     end += (long) (Long.parseLong(endIPSegments[i]) * Math.pow(256, (3 - i)));
                 }
-                ips.add(new IP(start, end, location, remark));
+                Constant.getIps().add(new IP(start, end, location, remark));
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -78,14 +70,14 @@ public class DumpIP {
     }
 
 
-    static void dump() {
+    public static void dump() {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         try {
             new Driver();
-            connection = DriverManager.getConnection(URL);
-            preparedStatement = connection.prepareStatement(SQL);
-            for (IP ip : ips) {
+            connection = DriverManager.getConnection(Constant.getURL());
+            preparedStatement = connection.prepareStatement(Constant.getInsertSql());
+            for (IP ip : Constant.getIps()) {
                 preparedStatement.setLong(1, ip.getStart());
                 preparedStatement.setLong(2, ip.getEnd());
                 preparedStatement.setString(3, ip.getLocation());
@@ -111,17 +103,6 @@ public class DumpIP {
                 }
             }
         }
-    }
-
-    static boolean isIP(String ip) {
-        //255.255.255.255-0.0.0.1
-        String pattIP = "^(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|[1-9])\\."
-                + "(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
-                + "(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
-                + "(00?\\d|1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)$";
-        Pattern pattern = Pattern.compile(pattIP);
-        Matcher matcher = pattern.matcher(ip);
-        return matcher.matches();
     }
 }
 
