@@ -48,10 +48,10 @@ public class DumpIP {
                 location = line.split("\\s+")[2];
                 remark = line.replaceAll(line.split("\\s+")[0] + "\\s+" + line.split("\\s+")[1] + "\\s+" + line.split("\\s+")[2], "").trim();
                 for (int i = 0; i < startIPSegments.length; i++) {
-                    start += (long) (Long.parseLong(Segments[i]) * Math.pow(256, (3 - i)));
+                    start += (long) (Long.parseLong(startIPSegments[i]) * Math.pow(256, (3 - i)));
                 }
                 for (int i = 0; i < endIPSegments.length; i++) {
-                    end += (long) (Long.parseLong(Segments[i]) * Math.pow(256, (3 - i)));
+                    end += (long) (Long.parseLong(endIPSegments[i]) * Math.pow(256, (3 - i)));
                 }
                 ips.add(new IP(start, end, location, remark));
             }
