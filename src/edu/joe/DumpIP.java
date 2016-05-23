@@ -143,31 +143,15 @@ class IP {
         return start;
     }
 
-    public void setStart(long start) {
-        this.start = start;
-    }
-
     public long getEnd() {
         return end;
-    }
-
-    public void setEnd(long end) {
-        this.end = end;
     }
 
     public String getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     public String getRemark() {
         return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
     }
 }
