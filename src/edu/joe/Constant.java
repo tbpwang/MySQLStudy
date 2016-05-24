@@ -9,10 +9,10 @@ import java.util.regex.Pattern;
  * 2016/5/23.
  */
 public class Constant {
-    private static final String URL = "jdbc:mysql://10.4.32.21:3306/db_ip?user=root&password=system";
+    private static final String URL = "jdbc:mysql://localhost:3306/db_ip?user=root&password=system";//"jdbc:mysql://10.4.32.21:3306/db_ip?user=root&password=system";
     private static final String SELECT_SQL = "SELECT location, remark FROM DB_IP.IP WHERE INET_ATON( ? ) >= start AND INET_ATON( ? ) <= end";
     private static final String DUMP_FILE = "data/ip.txt";
-    private static final String INSERT_SQL = "INSERT INTO db_IP.IP(start,end,location,remark)VALUES(?,?,?,?);";
+    private static final String INSERT_SQL = "INSERT INTO db_IP.IP(start,end,location,remark)VALUES(?,?,?,?)";
     private static List<IP> ips;
 
     public static String getDumpFile() {

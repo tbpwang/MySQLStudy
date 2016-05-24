@@ -28,13 +28,17 @@ public class DumpIP {
         long start = 0;
         long end = 0;
         String location, remark;
-        String[] startIPSegments, endIPSegments;
+        String[] startIPSegments;
+        String[] endIPSegments;
         Constant.setIps(new ArrayList<>());
         try {
             file = new FileReader(Constant.getDumpFile());
 
             reader = new BufferedReader(file);
             while ((line = reader.readLine()) != null) {
+                if(line.equals("")){
+                    break;
+                }
                 String[] Segments = line.split("\\s+");
                 startIPSegments = line.split("\\s+")[0].split("\\.");
                 endIPSegments = line.split("\\s+")[1].split("\\.");
