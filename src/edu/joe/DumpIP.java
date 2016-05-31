@@ -27,9 +27,9 @@ public class DumpIP {
         String line;
         long start = 0;
         long end = 0;
-        String location, remark;
-        String[] startIPSegments;
-        String[] endIPSegments;
+        String remark;
+//        String[] startIPSegments;
+//        String[] endIPSegments;
         Constant.setIps(new ArrayList<>());
         try {
             file = new FileReader(Constant.getDumpFile());
@@ -39,19 +39,20 @@ public class DumpIP {
                 if(line.equals("")){
                     break;
                 }
-                String[] Segments = line.split("\\s+");
-                startIPSegments = line.split("\\s+")[0].split("\\.");
-                endIPSegments = line.split("\\s+")[1].split("\\.");
-                location = line.split("\\s+")[2];
+//                String[] Segments = line.split("\\s+");
+//                startIPSegments = line.split("\\s+")[0].split("\\.");
+//                endIPSegments = line.split("\\s+")[1].split("\\.");
+//                location = line.split("\\s+")[2];
+//                remark = line.replaceAll(line.split("\\s+")[0] + "\\s+" + line.split("\\s+")[1] + "\\s+" + line.split("\\s+")[2], "").trim();
+//
+//                for (int i = 0; i < startIPSegments.length; i++) {
+//                    start += (long) (Long.parseLong(startIPSegments[i]) * Math.pow(256, (3 - i)));
+//                }
+//                for (int i = 0; i < endIPSegments.length; i++) {
+//                    end += (long) (Long.parseLong(endIPSegments[i]) * Math.pow(256, (3 - i)));
+//                }
                 remark = line.replaceAll(line.split("\\s+")[0] + "\\s+" + line.split("\\s+")[1] + "\\s+" + line.split("\\s+")[2], "").trim();
-
-                for (int i = 0; i < startIPSegments.length; i++) {
-                    start += (long) (Long.parseLong(startIPSegments[i]) * Math.pow(256, (3 - i)));
-                }
-                for (int i = 0; i < endIPSegments.length; i++) {
-                    end += (long) (Long.parseLong(endIPSegments[i]) * Math.pow(256, (3 - i)));
-                }
-                Constant.getIps().add(new IP(start, end, location, remark));
+                Constant.getIps().add(new IP(line.split("\\s+")[0], line.split("\\s+")[1], line.split("\\s+")[2], remark));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,8 +83,8 @@ public class DumpIP {
             connection = DriverManager.getConnection(Constant.getURL());
             preparedStatement = connection.prepareStatement(Constant.getInsertSql());
             for (IP ip : Constant.getIps()) {
-                preparedStatement.setLong(1, ip.getStart());
-                preparedStatement.setLong(2, ip.getEnd());
+                preparedStatement.setString(1, ip.getStart());
+                preparedStatement.setString(2, ip.getEnd());
                 preparedStatement.setString(3, ip.getLocation());
                 preparedStatement.setString(4, ip.getRemark());
                 preparedStatement.addBatch();
@@ -112,23 +113,23 @@ public class DumpIP {
 
 //IP table(id, start bigint, end bigint, location varchar, remark varchar)
 class IP {
-    private long start;
-    private long end;
+    private String start;
+    private String end;
     private String location;
     private String remark;
 
-    public IP(long start, long end, String location, String remark) {
+    public IP(String start, String end, String location, String remark) {
         this.start = start;
         this.end = end;
         this.location = location;
         this.remark = remark;
     }
 
-    public long getStart() {
+    public String getStart() {
         return start;
     }
 
-    public long getEnd() {
+    public String getEnd() {
         return end;
     }
 
